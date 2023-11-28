@@ -1,6 +1,6 @@
 /**:
   ros__parameters:
-    top_x: 110
+    top_x: 90
     top_y: 0
-    bottom_x: 285
+    bottom_x: 220
     bottom_y: 200
