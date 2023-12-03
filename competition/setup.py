@@ -26,7 +26,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "lane_moving = competition.lane_moving:main",
+            "lane_detect = competition.lane_detect:main",
+            "lane_follow = competition.lane_follow:main",
         ],
     },
 )
