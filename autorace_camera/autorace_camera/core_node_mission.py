@@ -3,6 +3,7 @@ from rclpy.node import Node
 import subprocess, random
 import time, os
 from nav_msgs.msg import Odometry
+import xml.etree.ElementTree as ET
 
 
 class ControlMission(Node):
@@ -11,7 +12,7 @@ class ControlMission(Node):
         self.sub_odom = self.create_subscription(Odometry, '/robot/odom', self.getOdom, 1)
         self.traffic_state = 1
         self.loadMissionModel()
-        # self.setTraffic()
+        self.setTraffic()
         self.controlMission()
 
     def getOdom(self, msg):
@@ -50,6 +51,10 @@ class ControlMission(Node):
         with open(traffic_right_path, 'r') as trm:
             self.traffic_right_model = trm.read().replace("\n", "")
 
+        suv_path = model_dir_path + '/suv/suv.sdf'
+        with open(suv_path, 'r') as suv:
+            self.suv_model = suv.read().replace("\n", "")
+
         # up_bar_path = model_dir_path + '/traffic_bar_up/model.sdf'
         # up_bar_model = open(up_bar_path, 'r')
         # self.up_bar_model = up_bar_model.read()
@@ -58,42 +63,22 @@ class ControlMission(Node):
         # down_bar_model = open(down_bar_path, 'r')
         # self.down_bar_model = down_bar_model.read()
 
-    # def setTraffic(self):
-    #     spawn_model_prox = rospy.ServiceProxy('gazebo/spawn_sdf_model', SpawnModel)
-    #     spawn_model_prox(
-    #         'traffic_left',
-    #         self.traffic_left_model,
-    #         "robotos_name_space",
-    #         self.initial_pose,
-    #         "world")
-    #     spawn_model_prox(
-    #         'traffic_right',
-    #         self.traffic_right_model,
-    #         "robotos_name_space",
-    #         self.initial_pose,
-    #         "world")
-    #     spawn_model_prox(
-    #         'down_bar',
-    #         self.down_bar_model,
-    #         "robotos_name_space",
-    #         self.initial_pose,
-    #         "world")
+    def setTraffic(self):
+        
+        # Find the specific element and change its values
+        parking_stop = random.random()
+        x = 0.8 if parking_stop < 0.5 else 0.23
+        y = 0.8
+        z = 0.05
+        modified_suv_model = self.suv_model.replace('0 0 0 0 0 -1.57079632679', f'{x} {y} {z} 0 0 0')
 
-    #     parking_pose = Pose()
-    #     parking_stop = np.random.rand()
-    #     parking_pose.position.x = 0.73 if parking_stop < 0.5 else 0.23
-    #     parking_pose.position.y = 0.8
-    #     parking_pose.position.z = 0.03
-    #     parking_pose.orientation.x = 0
-    #     parking_pose.orientation.y = 0
-    #     parking_pose.orientation.z = -1
-    #     parking_pose.orientation.w = -1
-    #     spawn_model_prox(
-    #         'praking_turtlebot3',
-    #         self.parking_model,
-    #         "robotos_name_space",
-    #         parking_pose,
-    #         "world")
+        command = ["gz", "service", "-s", "/world/course/create",
+                    "--reqtype", "gz.msgs.EntityFactory",
+                    "--reptype", "gz.msgs.Boolean",
+                    "--timeout", "300",
+                    "--req", f'sdf: "{modified_suv_model}"']
+
+        p = subprocess.run(command)
 
     def controlMission(self):
         while rclpy.ok():
