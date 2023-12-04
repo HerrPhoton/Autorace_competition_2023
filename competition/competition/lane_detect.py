@@ -8,17 +8,17 @@ from cv_bridge import CvBridge
 import cv2
 
 
-class LineDetecter(Node):
+class LineDetector(Node):
     """ Определение белой и желтой линий на трансформированном изображении, 
     поступающего с камеры. Публикует координату x, на которой находится центр
     между линиями."""
 
     def __init__(self):
-        super().__init__('LineDetecter')
+        super().__init__('LineDetector')
 
         self.pub = self.create_publisher(
             Float64,
-            '/lane/center',
+            '/center_lane',
             10)
         
         self.sub = self.create_subscription(
@@ -39,16 +39,16 @@ class LineDetecter(Node):
         M_yellow = cv2.moments(yellow_mask, binaryImage = True)
         M_white = cv2.moments(white_mask, binaryImage = True)
 
-        yellow_center_x = M_yellow['m10'] // M_yellow['m00']
-        white_center_x = M_white['m10'] // M_white['m00']
+        yellow_center_x = 0 if M_yellow['m00'] == 0 else M_yellow['m10'] // M_yellow['m00']
+        white_center_x = image.shape[1] if M_white['m00'] == 0 else M_white['m10'] // M_white['m00']
 
-        self.pub.publish(Float64(data = abs(yellow_center_x - white_center_x) / 2))
+        self.pub.publish(Float64(data = abs(yellow_center_x + white_center_x) / 2))
 
 
 def main():
     rclpy.init()
 
-    node = LineDetecter()
+    node = LineDetector()
     rclpy.spin(node)
     
     node.destroy_node()

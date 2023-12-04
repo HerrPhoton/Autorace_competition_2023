@@ -5,7 +5,6 @@ from ament_index_python.packages import get_package_share_directory
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import IncludeLaunchDescription
 from launch.substitutions import LaunchConfiguration
-from launch.actions import TimerAction
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
@@ -26,22 +25,23 @@ def generate_launch_description():
         autorace_sim,
         camera_calibration,
 
-        TimerAction(
-            period = 7.0,
-            actions = [
-                Node(
-                    package = 'autorace_camera',
-                    executable = 'core_node_mission',
-                    name = 'core_node_mission'),
-                
-                Node(
-                    package = 'competition',
-                    executable = 'lane_detect',
-                    name = 'lane_detect'),
+        Node(
+            package = 'competition',
+            executable = 'traffic_light_detect',
+            name = 'traffic_light_detect'),
 
-                Node(
-                    package = 'competition',
-                    executable = 'lane_follow',
-                    name = 'lane_follow'),
-                    ])
+        Node(
+            package = 'autorace_camera',
+            executable = 'core_node_mission',
+            name = 'core_node_mission'),
+                
+        Node(
+            package = 'competition',
+            executable = 'lane_detect',
+            name = 'lane_detect'),
+
+        Node(
+            package = 'competition',
+            executable = 'lane_follow',
+            name = 'lane_follow')
     ])
