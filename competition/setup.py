@@ -16,6 +16,9 @@ setup(
         
         (os.path.join('share', package_name, 'launch'), 
          glob(os.path.join('launch', '*launch.[pxy][yma]*'))),
+         
+        (os.path.join('share', package_name, package_name, 'signs'), 
+         glob(os.path.join(package_name, 'signs', '*[png]*'))),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -26,7 +29,9 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            "lane_moving = competition.lane_moving:main",
+            #"lane_detect = competition.lane_detect:main",
+            #"lane_follow = competition.lane_follow:main",
+            "detection = competition.detection:main",
         ],
     },
 )

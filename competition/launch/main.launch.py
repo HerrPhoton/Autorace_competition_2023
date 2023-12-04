@@ -32,6 +32,21 @@ def generate_launch_description():
                 Node(
                     package = 'autorace_camera',
                     executable = 'core_node_mission',
-                    name = 'core_node_mission')
+                    name = 'core_node_mission'),
+                
+                Node(
+                    package = 'competition',
+                    executable = 'lane_detect',
+                    name = 'lane_detect'),
+                    
+                Node(
+                    package = 'competition',
+                    executable = 'detection',
+                    name = 'detection'),
+
+                Node(
+                    package = 'competition',
+                    executable = 'lane_follow',
+                    name = 'lane_follow'),
                     ])
     ])
