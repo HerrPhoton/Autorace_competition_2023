@@ -29,6 +29,7 @@ setup(
             "lane_detect = competition.lane_detect:main",
             "lane_follow = competition.lane_follow:main",
             "traffic_light_detect = competition.traffic_light_detect:main",
+            "avoid_obstacles = competition.avoid_obstacles:main",
         ],
     },
 )

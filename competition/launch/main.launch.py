@@ -43,5 +43,10 @@ def generate_launch_description():
         Node(
             package = 'competition',
             executable = 'lane_follow',
-            name = 'lane_follow')
+            name = 'lane_follow'),
+
+        # Node(
+        #     package = 'competition',
+        #     executable = 'avoid_obstacles',
+        #     name = 'avoid_obstacles'),              
     ])

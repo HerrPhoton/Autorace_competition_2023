@@ -20,22 +20,26 @@ class TrafficLightDetector(Node):
         self.pub = self.create_publisher(
             Bool,
             '/moving_enable',
-            10)
+            1)
         
         self.sub = self.create_subscription(
             Image,
             '/color/image',
             self.subscription_callback,
-            10)
+            1)
 
         self.cv_bridge = CvBridge()
 
     def subscription_callback(self, msg):
+
+        # Считывание изображения и перевод в HSV
         image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
         image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
+        # Маскирование зеленого цвета
         green_mask = cv2.inRange(image, (50, 100, 100), (70, 255, 255))
 
+        # Подача сигнала на движение, если есть хоть один зеленый пиксел
         if np.any(green_mask != 0):
             self.pub.publish(Bool(data = True))
             rclpy.shutdown()

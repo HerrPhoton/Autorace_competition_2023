@@ -20,29 +20,29 @@ class LaneFollower(Node):
         self.pub = self.create_publisher(
             Twist,
             '/cmd_vel',
-            10)
+            1)
         
         self.center_lane_sub = self.create_subscription(
             Float64,
             '/center_lane',
             self.move_robot,
-            10)
+            1)
         
         self.moving_enable_sub = self.create_subscription(
             Bool,
             '/moving_enable',
             self.moving_state,
-            10)
+            1)
 
-        self.moving_enable = False
+        self.moving_enable = False # Разрешено ли движение роботу
 
-        self.is_first_call = True
-        self.true_center = None
+        self.is_first_call = True # Проверка на первый вызов для записи начального центра
+        self.true_center = None # Координата x истинного центра
 
-        self.instant_errors = deque([0], maxlen = 1000)
-        self.error_differences = deque(maxlen = 1000)
+        self.instant_errors = deque([0], maxlen = 100) # Массив мгновенных ошибок
+        self.error_differences = deque(maxlen = 100) # Массив разниц мнгновенных ошибок
         
-        self.max_vel = 0.15
+        self.max_vel = 0.20 # Максимальная скорость робота
 
     def move_robot(self, msg):
 
@@ -56,7 +56,7 @@ class LaneFollower(Node):
         if self.is_first_call:
 
             self.is_first_call = False
-            self.true_center = cur_center
+            self.true_center = cur_center + 50
 
             return
 
@@ -65,14 +65,19 @@ class LaneFollower(Node):
         self.error_differences.append(error - self.instant_errors[-1])
         self.instant_errors.append(error)
 
-        Kp = 0.01
-        Ki = 0.0
-        Kd = 0.0
+        # PID константы для угла поворота
+        Kp_ang = 0.005
+        Ki_ang = 0.0
+        Kd_ang = 0.0
 
-        angular_z = Kp * error + Ki * np.sum(self.instant_errors) + Kd * np.sum(self.error_differences)
-        linear_x = self.max_vel #- Kp * error
+        # PID константы для скорости
+        Kp_vel = 0.0
+        Ki_vel = 0.0
+        Kd_vel = 0.0
+
+        angular_z = Kp_ang * error + Ki_ang * np.sum(self.instant_errors) + Kd_ang * np.sum(self.error_differences)
+        linear_x = self.max_vel - Kp_vel * error - Ki_vel * np.sum(self.instant_errors) - Kd_vel * np.sum(self.error_differences)
         
-
         twist = Twist()   
         twist.linear.x = linear_x
         twist.angular.z = angular_z
