@@ -26,6 +26,11 @@ class LineDetector(Node):
             '/color/image_projected',
             self.subscription_callback,
             1)
+        
+        self.image_pub = self.create_publisher(
+            Image,
+            '/color/masks',
+            1)
 
         self.cv_bridge = CvBridge()
 
@@ -38,6 +43,8 @@ class LineDetector(Node):
         # Маска для линий
         yellow_mask = cv2.inRange(image, (20, 100, 100), (30, 255, 255))
         white_mask = cv2.inRange(image, (0, 0, 255), (255, 0, 255))
+
+        self.image_pub.publish(self.cv_bridge.cv2_to_imgmsg(cv2.bitwise_or(yellow_mask, white_mask), '8UC1'))
 
         # Определение центров линий
         M_yellow = cv2.moments(yellow_mask, binaryImage = True)
