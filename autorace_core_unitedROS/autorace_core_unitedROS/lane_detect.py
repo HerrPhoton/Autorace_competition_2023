@@ -16,12 +16,12 @@ class LineDetector(Node):
     def __init__(self):
         super().__init__('LineDetector')
 
-        self.pub = self.create_publisher(
+        self.center_lane_pub = self.create_publisher(
             Float64,
             '/center_lane',
             1)
         
-        self.sub = self.create_subscription(
+        self.img_proj_sub = self.create_subscription(
             Image,
             '/color/image_projected',
             self.subscription_callback,
@@ -51,7 +51,7 @@ class LineDetector(Node):
             white_center_x = image.shape[1]
 
         # Публикация центра между линиями
-        self.pub.publish(Float64(data = (yellow_center_x + white_center_x) / 2))
+        self.center_lane_pub.publish(Float64(data = (yellow_center_x + white_center_x) / 2))
 
 
 def main():

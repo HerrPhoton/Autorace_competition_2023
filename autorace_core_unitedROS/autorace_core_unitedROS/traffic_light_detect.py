@@ -17,20 +17,20 @@ class TrafficLightDetector(Node):
     def __init__(self):
         super().__init__('TrafficLightDetector')
 
-        self.pub = self.create_publisher(
+        self.enable_following_pub = self.create_publisher(
             Bool,
-            '/moving_enable',
+            '/enable_following',
             1)
         
-        self.sub = self.create_subscription(
+        self.image_sub = self.create_subscription(
             Image,
             '/color/image',
-            self.subscription_callback,
+            self.find_green,
             1)
 
         self.cv_bridge = CvBridge()
 
-    def subscription_callback(self, msg):
+    def find_green(self, msg):
 
         # Считывание изображения и перевод в HSV
         image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
@@ -41,7 +41,7 @@ class TrafficLightDetector(Node):
 
         # Подача сигнала на движение, если есть хоть один зеленый пиксел
         if np.any(green_mask != 0):
-            self.pub.publish(Bool(data = True))
+            self.enable_following_pub.publish(Bool(data = True))
             rclpy.shutdown()
 
 

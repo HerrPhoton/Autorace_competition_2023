@@ -30,7 +30,7 @@ class Sign_detection(Node):
             '/color/detect',
             1)
         
-        self.sub = self.create_subscription(
+        self.image_sub = self.create_subscription(
             Image,
             '/color/image',
             self.subscription_callback,
@@ -41,7 +41,9 @@ class Sign_detection(Node):
 
         self.classes = self.model.names
 
-        self.min_square = 10000 # Минимальная площадь (в пикселях) bbox
+        # Минимальная площадь bbox для детекции знака
+        self.min_square = self.declare_parameter('min_square', 0).get_parameter_value().integer_value   
+
         self.cvBridge = CvBridge()
 
     def subscription_callback(self, image_msg):

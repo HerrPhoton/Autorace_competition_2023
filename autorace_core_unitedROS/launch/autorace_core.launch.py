@@ -20,6 +20,8 @@ def generate_launch_description():
     camera_calibration = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_autorace_camera, 'launch', 'extrinsic_camera_calibration.launch.py')))
+    
+    params = os.path.join(pkg_autorace_core, 'config', 'params.yaml')
 
     return LaunchDescription([
         autorace_sim, # УБРАТЬ В ФИНАЛЬНОЙ ВЕРСИИ!!!!
@@ -30,7 +32,8 @@ def generate_launch_description():
             executable = 'sign_detection',
             name = 'sign_detection',
             parameters=[
-                {'model_path': os.path.join(pkg_autorace_core, 'model')}]),
+                {'model_path': os.path.join(pkg_autorace_core, 'model')},
+                params]),
 
         Node(
             package = 'autorace_core_unitedROS',
@@ -45,7 +48,8 @@ def generate_launch_description():
         Node(
             package = 'autorace_core_unitedROS',
             executable = 'lane_follow',
-            name = 'lane_follow'),
+            name = 'lane_follow',
+            parameters = [params]),
 
         Node(
             package = 'autorace_core_unitedROS',
