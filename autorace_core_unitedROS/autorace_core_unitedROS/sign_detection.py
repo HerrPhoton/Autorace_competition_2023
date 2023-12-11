@@ -1,7 +1,5 @@
 import os
 
-import torch
-
 import rclpy
 from rclpy.node import Node
 
@@ -9,6 +7,8 @@ from std_msgs.msg import String
 from sensor_msgs.msg import Image
 from cv_bridge import CvBridge
 
+import numpy as np
+import torch
 import cv2
 
 
@@ -44,6 +44,10 @@ class Sign_detection(Node):
         # Минимальная площадь bbox для детекции знака
         self.min_square = self.declare_parameter('min_square', 0).get_parameter_value().integer_value   
 
+        # Количество детекций для усреднения ответа
+        self.detects_cnt = self.declare_parameter('detects_cnt', 0).get_parameter_value().integer_value   
+        self.detects = [] # Список детектированных знаков
+
         self.cvBridge = CvBridge()
 
     def subscription_callback(self, image_msg):
@@ -55,13 +59,25 @@ class Sign_detection(Node):
         result = self.model(image)    
         bbox = result.pandas().xyxy[0]
 
-        # Если есть детекции, то публикуем найденный класс
+        # Проверка на детекцию
         if len(bbox['class'].values) != 0:
             sqr = (bbox['xmax'].values[0] - bbox['xmin'].values[0]) * (bbox['ymax'].values[0] - bbox['ymin'].values[0]) 
             
             if sqr > self.min_square:
                 image = result.render()[0]
-                self.class_pub.publish(String(data = self.classes[result.pandas().xyxy[0]['class'].values[0]]))
+                cur_sign = self.classes[result.pandas().xyxy[0]['class'].values[0]]
+
+                # Усредням результат по заданному количеству детекций
+                if len(self.detects) != self.detects_cnt:
+                    self.detects.append(cur_sign)
+                else:
+                    # Находим самый встречаемый класс
+                    unique, pos = np.unique(self.detects, return_inverse = True)
+                    cur_sign = unique[np.bincount(pos).argmax()] 
+
+                    self.detects = []
+                    self.class_pub.publish(String(data = cur_sign))
+
 
         image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR) 
         self.image_pub.publish(self.cvBridge.cv2_to_imgmsg(image,  image_msg.encoding))

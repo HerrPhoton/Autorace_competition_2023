@@ -1,7 +1,7 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String, Float64
+from std_msgs.msg import String, Bool
 from geometry_msgs.msg import Twist
 
 
@@ -17,30 +17,49 @@ class LeftSignDetector(Node):
             Twist,
             '/cmd_vel',
             1)
-        
+
+        self.enable_following_pub = self.create_publisher(
+            Bool,
+            '/enable_following',
+            1)
+
         self.sign_sub = self.create_subscription(
             String,
             '/sign',
-            self.rotate_robot,
+            self.handle_sign,
             1)
         
-    def rotate_robot(self, msg):
+        self.timer = self.create_timer(0.1, self.rotate_robot)
+
+        self.cnt = 0
+        self.enable_rotate = False
+
+    def handle_sign(self, msg):
         
         cur_sign = msg.data
 
-        if cur_sign == 'turn_left_sign' or cur_sign == 'turn_right_sign':
+        if cur_sign == 'turn_left_sign' and not self.enable_rotate:
 
-            for _ in range(50): 
-            
-                twist = Twist()
-                twist.linear.x = 0.20   
-                twist.angular.z = 2.0
+            self.enable_following_pub.publish(Bool(data = False))
+            self.enable_rotate = True
 
-                self.cmd_vel_pub.publish(twist)
+    def rotate_robot(self):
 
-            rclpy.shutdown()
+        if self.enable_rotate:
 
+            twist = Twist()
+            twist.linear.x = 0.2  
+            twist.angular.z = 3.0
 
+            self.cmd_vel_pub.publish(twist)
+
+            self.cnt += 1
+
+            if self.cnt == 15:
+                self.enable_following_pub.publish(Bool(data = True))
+                rclpy.shutdown()
+
+        
 def main():
     rclpy.init()
 
