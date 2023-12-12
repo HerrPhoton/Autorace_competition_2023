@@ -103,4 +103,8 @@ pip install -r requirements.txt
 ## Источники
 
 ---
-[U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)  
+- [Competition](https://github.com/virusapex/autorace_2023)
+- [ROS2-Humble](https://docs.ros.org/en/humble/Installation.html)
+- [Gazebo](https://gazebosim.org/docs/garden/install)
+- [YOLOv5](https://github.com/ultralytics/yolov5)
+- [OpenCV Tutorials](https://docs.opencv.org/4.x/d9/df8/tutorial_root.html)
