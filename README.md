@@ -1,119 +1,106 @@
 # Autorace competition 2023 - UnitedROS
-![](https://github.com/HerrPhoton/Autorace_competition_2023/images/Лого.jpg)
+![](https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/%D0%9B%D0%BE%D0%B3%D0%BE.jpg)
 
 ---
 
-<img src = "https://img.shields.io/badge/Python 3.9-006C6B?style=for-the-badge&color=3C7270&labelColor=%23006C6B&logo=python&logoColor=FFFFFF"> <img src ='https://img.shields.io/github/watchers/HerrPhoton/Water_drop_detection?style=for-the-badge&color=3C7270&labelColor=%23006C6B&logo=actigraph&logoColor=FFFFFF'>
-<img src = 'https://img.shields.io/github/actions/workflow/status/HerrPhoton/Water_drop_detection/Project-tests.yml?style=for-the-badge&color=3C7270&labelColor=%23006C6B&logo=githubactions&logoColor=FFFFFF'>
-<img src = 'https://img.shields.io/github/contributors/HerrPhoton/Water_drop_detection?style=for-the-badge&color=3C7270&labelColor=%23006C6B&logo=teamspeak&logoColor=FFFFFF'>  
-<img src ='https://img.shields.io/github/repo-size/HerrPhoton/Water_drop_detection?style=for-the-badge&color=3C7270&labelColor=%23006C6B&logo=weightsandbiases&logoColor=FFFFFF'>
-<img src = "https://img.shields.io/badge/Code%20Coverage-81%25-success?style=for-the-badge&color=3C7270&labelColor=%23006C6B&logo=textpattern&logoColor=FFFFFF">
-<img src = "https://img.shields.io/docker/image-size/alincnl/drop_detection/detect?style=for-the-badge&color=3C7270&labelColor=%23006C6B&logo=docker&logoColor=FFFFFF">
+<img src = "https://img.shields.io/badge/Python 3.9-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=python&logoColor=FFFFFF"> <img src = 'https://img.shields.io/github/contributors/HerrPhoton/Autorace_competition_2023?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=teamspeak&logoColor=FFFFFF'>  <img src ='https://img.shields.io/github/repo-size/HerrPhoton/Autorace_competition_2023?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=weightsandbiases&logoColor=FFFFFF'>
+
 
 
 ---
 ### Выполнили: 
 + [Володина Софья](https://github.com/PiroJOJO)
 + [Лейсле Александр](https://github.com/HerrPhoton)
-+ [Квас Алина](https://github.com/kvasik3000)
++ [Квас Андрей](https://github.com/kvasik3000)
 ### Дата: 19.12.2023г.
 ---
 
 ## Введение
 
-UnitedRos - это не просто команда, это семья. Наша дружба помогает нам справлется с всеми трудностями и невзгодами. Но когда в нашей жизни появился ROS, мы осознали, к чему наша верность готовила 
+ЕдиноROSы - это не просто команда, это семья. Наша дружба помогала нам справляться с всеми трудностями и невзгодами. Но когда в нашей жизни появился ROS, мы осознали, что это не просто испытание, а самая настоящая закалка, которая, непременно, скрепила наши узы ещё сильнее. Теперь мы не просто ЕдиноROSы, мы герои, мы три мушкетера, которые готовы принять любой удар судьбы. Ура! 
 
 ---
 
-## Neural Net
+## PID регулятор
 
-Для детекции капель была выбрана нейросеть с архитектурой Unet, имеющая энкодер ResNet50. Она представляет из себя сверточную нейронную сеть из  двух блоков: энкодера и декодера. Первый из них уменьшает разрешение изображения и увеличивает информационный объем каждого пикселя. Декодер, наоборот, разворачивает выход из энкодера до первоначального размера и выдает маску искомого объекта.  
-
----
-
-![](https://github.com/HerrPhoton/Water_drop_detection/blob/master/images/unet.jpg)
+Саша пишет >>>
 
 ---
 
-Данная нейронная сеть проста в реализации и удобна в использовании для решения поставленных целей проекта. Для Unet характерна высокая точность работы при малом объеме данных. В результате её работы есть возможность не только получить маску изображения, 
-но и найти площадь сегментированного объекта.
+![]()
 
 ---
 
-## Датасет
+## Детекция сигналов
 
-Сборка датасета состояла из нескольких частей: 
-- поиск изображений в интернете/съемка фотографии с каплями воды
-- создание маски в фоторедакторе, на которой белым цветом отображен участок капли, черным - фон 
-- перевод маски с помощью скрипта на языке Python в бинарную матрицу True-False и сохранение ее с расширением .npz 
-- создание датасета путем объединения исходной фотографии и соответствующей ей npz-маски
+Тут Соня пишет >>>
 
 ---
 
-![](https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/dataset)
+![]()
 
 ---
 
-## UI
+## Перекресток
 
-UI сделан с помощью языка Python, библиотеки PyQT5 и программы QtDesigner. 
-Интерфейс принимает изображение или папку с изображениями и отправляет их в нейронную сеть для детектирования. Результат сохраняется в новую папку в двух форматах: на одном капли закрашиваются, на другом добавляется bounding box. Пользователь может выбрать любую из версий для просмотра. Также при передаче изображения есть возможность отредактировать его: повернуть в любую сторону или обрезать. Каждая страница UI изначально создана в QtDesigner, в коде представлена в виде класса со своими методами. Взаимодействие между страницами происходит с помощью функций библиотеки PyQT5
-
----
-
-![](https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/ui.jpg)
+Тут Саня пишет >>>
 
 ---
 
-## Управление проектом
+![]()
+
+---
+## Объезд препятствий
+
+Тут Андрей пишет >>>
+
+---
+
+![]()
+
+---
+## Парковка
+
+Тут Соня пишет >>>
+
+---
+
+![]()
+
+---
+## Пешеходный переход
+
+Тут Соня пишет >>>
+
+---
+
+![]()
+
+---
+# Управление проектом
 
 ### Установка и запуск программы
 
-+ Перейдите по ссылке и скачайте архив с проектом: https://github.com/HerrPhoton/Water_drop_detection/releases
-+ Или клонируйте репозиторий нижеприведенной командой:
++ Клонируйте репозиторий нижеприведенной командой:
 ```
-git clone https://github.com/HerrPhoton/Water_drop_detection
+git clone https://github.com/HerrPhoton/Autorace_competition_2023
 ```
-+ Откройте папку Water_drop_detection и установите необходимые библиотеки командой ниже:
++ Установите необходимые библиотеки командой ниже:
 ```
 pip -r install requirements.txt
 ```
-+ Запустите приложение с помощью команды:
++ Запустите испытание с помощью команды:
   
 ```
-python water_drop_detection/main.py
+тут надо написать 
 ```
-+ Страница документации может быть запущена через:
-```
-start docs\build\html\index.html
-```
-
-Работа с Docker:
-+ Команды для сборки и запуска проекта в терминале:
-```
-docker build . -t drop_detection
-docker run drop_detection
-```
-+ Образ можно скачать с Docker Hub по ссылке: https://hub.docker.com/repository/docker/alincnl/drop_detection
-
-Информация о покрытии тестами:
-https://app.codecov.io/gh/HerrPhoton/Water_drop_detection
-
----
 
 ## Результаты работы программы
 
 ---
 
-| Тестовое изображение            | Маска изображения                | Маска + bounding box + окружность |
-| :---                            |    :----:                        |                              ---: |
-| <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test1-1.jpg"  alt="1" width = 360px height = 360px > | <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test1-2.png"  alt="1" width = 360px height = 360px > | <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test1-3.png"  alt="1" width = 360px height = 360px > |
-| <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test2-1.jpg"  alt="1" width = 360px height = 360px > | <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test2-2.png"  alt="1" width = 360px height = 360px > | <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test2-3.png"  alt="1" width = 360px height = 360px > |
-| <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test3-1.jpg"  alt="1" width = 360px height = 360px >  | <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test3-2.png"  alt="1" width = 360px height = 360px > | <img src="https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/test3-3.png"  alt="1" width = 360px height = 360px > |
 
 ## Источники
 
 ---
 [U-Net: Convolutional Networks for Biomedical Image Segmentation](https://arxiv.org/abs/1505.04597)  
-[GitHub Actions](https://docs.github.com/ru/actions)  
-[Docker Documentation](https://docs.docker.com)
