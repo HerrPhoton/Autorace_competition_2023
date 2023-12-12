@@ -87,7 +87,7 @@ git clone https://github.com/HerrPhoton/Autorace_competition_2023
 ```
 + Установите необходимые библиотеки командой ниже:
 ```
-pip -r install requirements.txt
+pip install -r requirements.txt
 ```
 + Запустите испытание с помощью команды:
   
