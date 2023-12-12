@@ -1,5 +1,5 @@
 # Autorace competition 2023 - UnitedROS
-![](https://github.com/HerrPhoton/Water_drop_detection/blob/Documentation/images/logo(2).jpg)
+![](https://github.com/HerrPhoton/Autorace_competition_2023/images/Лого.jpg)
 
 ---
 
