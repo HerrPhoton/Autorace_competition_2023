@@ -28,10 +28,22 @@ class LaneFollower(Node):
             self.move_robot,
             1)
         
+        self.offset_sub = self.create_subscription(
+            Float64,
+            '/offset',
+            self.get_offset,
+            1)
+            
         self.enable_following_sub = self.create_subscription(
             Bool,
             '/enable_following',
             self.moving_state,
+            1)
+        
+        self.max_vel_sub = self.create_subscription(
+            Float64,
+            '/max_vel',
+            self.set_max_vel,
             1)
 
         self.enable_following = False # Разрешено ли движение роботу вдоль полосы
@@ -47,9 +59,6 @@ class LaneFollower(Node):
         # Максимальная скорость робота
         self.max_vel = self.declare_parameter('max_speed', 0.0).get_parameter_value().double_value 
 
-        # Смещение центра от начального центра полосы
-        self.offset = self.declare_parameter('center_offset', 0).get_parameter_value().integer_value 
-
         # PID константы для угла поворота
         self.Kp_ang = self.declare_parameter('Kp_ang', 0.0).get_parameter_value().double_value
         self.Ki_ang = self.declare_parameter('Ki_ang', 0.0).get_parameter_value().double_value
@@ -59,6 +68,12 @@ class LaneFollower(Node):
         self.Kp_vel = self.declare_parameter('Kp_vel', 0.0).get_parameter_value().double_value
         self.Ki_vel = self.declare_parameter('Ki_vel', 0.0).get_parameter_value().double_value
         self.Kd_vel = self.declare_parameter('Kd_vel', 0.0).get_parameter_value().double_value
+
+        # Смещение центра от начального центра полосы
+        self.offset = self.declare_parameter('center_offset', 0.0).get_parameter_value().double_value 
+
+    def get_offset(self, msg):
+        self.offset = msg.data
 
     def move_robot(self, msg):
 
@@ -72,27 +87,27 @@ class LaneFollower(Node):
         if self.is_first_call:
 
             self.is_first_call = False
-            self.true_center = cur_center + self.offset
+            self.true_center = cur_center
 
             return
 
         # Запись текущей ошибки
-        error = self.true_center - cur_center
+        error = self.true_center + self.offset - cur_center
 
         self.error_differences.append(error - self.instant_errors[-1])
         self.instant_errors.append(error)
 
-        angular_z = self.Kp_ang * error + self.Ki_ang * np.sum(self.instant_errors) + self.Kd_ang * np.sum(self.error_differences)
-        linear_x = self.max_vel - self.Kp_vel * error - self.Ki_vel * np.sum(self.instant_errors) - self.Kd_vel * np.sum(self.error_differences)
-        
         twist = Twist()   
-        twist.linear.x = linear_x
-        twist.angular.z = angular_z
+        twist.linear.x = self.max_vel - (self.Kp_vel * np.abs(error) + self.Ki_vel * np.sum(np.abs(self.instant_errors)) + self.Kd_vel * np.sum(np.abs(self.error_differences)))
+        twist.angular.z = self.Kp_ang * error + self.Ki_ang * np.sum(self.instant_errors) + self.Kd_ang * np.sum(self.error_differences)
 
         self.cmd_vel_pub.publish(twist)
 
     def moving_state(self, msg):
         self.enable_following = msg.data
+
+    def set_max_vel(self, msg):
+        self.max_vel = msg.data
 
 
 def main():

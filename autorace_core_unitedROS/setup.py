@@ -16,14 +16,14 @@ data_files.append(('share/ament_index/resource_index/packages', ['resource/' + p
 data_files.append(('share/' + package_name, ['package.xml']))
 data_files.append((os.path.join('share', package_name, 'config'), glob(os.path.join('config', '*.yaml'))))
 data_files.append((os.path.join('share', package_name, 'launch'), glob(os.path.join('launch', '*launch.[pxy][yma]*'))))
-data_files.append((os.path.join('share', package_name, 'model'), glob(os.path.join('model', '*.pt'))))             
+data_files.append((os.path.join('share', package_name, 'model'), glob(os.path.join('model', '*.pt'))))
 
 setup(
     name=package_name,
     version='0.0.1',
     packages=find_packages(exclude=['test']),
     data_files=data_files,
-    install_requires=['setuptools==58.2.0'],
+    install_requires=['setuptools==58.2.0', 'dill'],
     zip_safe=True,
     maintainer='A. Leisle',
     maintainer_email='a.leisle@g.nsu.ru',
@@ -34,11 +34,12 @@ setup(
         'console_scripts': [
             "lane_detect = autorace_core_unitedROS.lane_detect:main",
             "lane_follow = autorace_core_unitedROS.lane_follow:main",
-            "traffic_light_detect = autorace_core_unitedROS.traffic_light_detect:main",
             "avoid_obstacles = autorace_core_unitedROS.avoid_obstacles:main",
             "sign_detection = autorace_core_unitedROS.sign_detection:main",
-            "left_sign_detect = autorace_core_unitedROS.left_sign_detect:main",
-        
+            "traffic_light = autorace_core_unitedROS.traffic_light:main",
+            "intersection = autorace_core_unitedROS.intersection:main",
+            "pedestrian_crossing = autorace_core_unitedROS.pedestrian_crossing:main",
+
         ],
     },
 )

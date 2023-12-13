@@ -10,12 +10,12 @@ import numpy as np
 import cv2
 
 
-class TrafficLightDetector(Node):
+class Traffic_Light_Handler(Node):
     """ Определение зеленого цвета светофора. 
     После обнаружения посылает сигнал о начале старта."""
 
     def __init__(self):
-        super().__init__('TrafficLightDetector')
+        super().__init__('Traffic_Light_Handler')
 
         self.enable_following_pub = self.create_publisher(
             Bool,
@@ -48,7 +48,7 @@ class TrafficLightDetector(Node):
 def main():
     rclpy.init()
 
-    node = TrafficLightDetector()
+    node = Traffic_Light_Handler()
     rclpy.spin(node)
     
     node.destroy_node()

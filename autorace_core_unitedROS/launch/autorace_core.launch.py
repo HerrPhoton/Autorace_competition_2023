@@ -6,6 +6,7 @@ from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.actions import IncludeLaunchDescription
 from launch import LaunchDescription
 from launch_ros.actions import Node
+from launch.actions import TimerAction
 
 
 def generate_launch_description():
@@ -24,7 +25,7 @@ def generate_launch_description():
     params = os.path.join(pkg_autorace_core, 'config', 'params.yaml')
 
     return LaunchDescription([
-        autorace_sim, # УБРАТЬ В ФИНАЛЬНОЙ ВЕРСИИ!!!!
+        autorace_sim,
         camera_calibration,
 
         Node(
@@ -37,13 +38,14 @@ def generate_launch_description():
 
         Node(
             package = 'autorace_core_unitedROS',
-            executable = 'traffic_light_detect',
-            name = 'traffic_light_detect'),
+            executable = 'traffic_light',
+            name = 'traffic_light'),
          
         Node(
             package = 'autorace_core_unitedROS',
             executable = 'lane_detect',
-            name = 'lane_detect'),
+            name = 'lane_detect',
+            parameters = [params]),
 
         Node(
             package = 'autorace_core_unitedROS',
@@ -53,18 +55,24 @@ def generate_launch_description():
 
         Node(
             package = 'autorace_core_unitedROS',
-            executable = 'left_sign_detect',
-            name = 'left_sign_detect'),
+            executable = 'intersection',
+            name = 'intersection',
+            parameters = [params]),
+
+        Node(
+            package = 'autorace_core_unitedROS',
+            executable = 'pedestrian_crossing',
+            name = 'pedestrian_crossing'),
 
         # Node(
         #     package = 'autorace_core_unitedROS',
         #     executable = 'avoid_obstacles',
         #     name = 'avoid_obstacles'),  
         
-        # УБРАТЬ В ФИНАЛЬНОЙ ВЕРСИИ!!!!
-        Node(
-            package = 'referee_console',
-            executable = 'mission_autorace_2023_referee',
-            name = 'mission_autorace_2023_referee'),
-
+        TimerAction(
+            period = 5.0,
+            actions = [Node(
+                package = 'referee_console',
+                executable = 'mission_autorace_2023_referee',
+                name = 'mission_autorace_2023_referee')]),
     ])
