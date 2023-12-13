@@ -152,25 +152,7 @@ class Intersection_Handler(Node):
 
         return roll, pitch, yaw
 
-    def quaternion_from_euler(self, roll, pitch, yaw):
-        
-        # Перевод углов Эйлера в кватернион
-        cy = np.math.cos(yaw * 0.5)
-        sy = np.math.sin(yaw * 0.5)
-        cp = np.math.cos(pitch * 0.5)
-        sp = np.math.sin(pitch * 0.5)
-        cr = np.math.cos(roll * 0.5)
-        sr = np.math.sin(roll * 0.5)
-
-        q = [0] * 4
-        q[0] = cy * cp * cr + sy * sp * sr
-        q[1] = cy * cp * sr - sy * sp * cr
-        q[2] = sy * cp * sr + cy * sp * cr
-        q[3] = sy * cp * cr - cy * sp * sr
-
-        return q
-
-                      
+                   
 def main():
     rclpy.init()
 
