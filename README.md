@@ -92,7 +92,9 @@ pip install -r requirements.txt
 + Запустите испытание с помощью команды:
   
 ```
-тут надо написать 
+colcon build
+. install/setup.bash
+ros2 launch autorace_core_unitedROS autorace_core.launch.py
 ```
 
 ## Результаты работы программы
