@@ -1,9 +1,9 @@
 import rclpy
 from rclpy.node import Node
 
-from std_msgs.msg import String, Bool, Float64
-from geometry_msgs.msg import Twist
+from std_msgs.msg import String, Bool, Float64, Int8
 from nav_msgs.msg import Odometry
+from robot_rotate_interface.msg import Rotate
 
 import numpy as np
 
@@ -20,11 +20,6 @@ class Intersection_Handler(Node):
             Bool,
             '/enable_following',
             1)
-        
-        self.cmd_vel_pub = self.create_publisher(
-            Twist,
-            '/cmd_vel',
-            1)
 
         self.max_vel_pub = self.create_publisher(
             Float64,
@@ -34,6 +29,17 @@ class Intersection_Handler(Node):
         self.offset_pub = self.create_publisher(
             Float64,
             '/offset',
+            1)
+        
+        self.rotate_pub = self.create_publisher(
+            Rotate,
+            '/rotate',
+            1)
+        
+        self.rotate_done_sub = self.create_subscription(
+            Int8,
+            '/rotate_done',
+            self.set_rotate_done,
             1)
         
         self.sign_sub = self.create_subscription(
@@ -48,13 +54,8 @@ class Intersection_Handler(Node):
             self.get_odom,
             1)
         
-        self.timer = self.create_timer(0.1, self.rotate_robot)
-
-        self.enable_rotate = True # Разрешено ли принудительно поворачивать робота
-
-        self.cur_angle = None   # Текущий абсолютный угол поворота
-        self.start_angle = None # Абсолютный угол поворота при начале поворота
-        self.angle = None       # Относительный угол поворота
+        self.rotated = False
+        self.id = 0
 
         # Скорости движения по перекрестку
         self.interIn_speed = self.declare_parameter('interIn_speed', 0.0).get_parameter_value().double_value
@@ -71,59 +72,31 @@ class Intersection_Handler(Node):
         
         cur_sign = msg.data
 
-        # Действия при проезде знака перекрестка
-        if cur_sign == 'intersection_sign':
-            self.max_vel_pub.publish(Float64(data = self.interIn_speed))
-            self.offset_pub.publish(Float64(data = self.interIn_offset))
+        if not self.rotated:
 
-        # Действия при повороте налево или направо
-        if (cur_sign == 'turn_left_sign' or cur_sign == 'turn_right_sign'):
-            self.max_vel_pub.publish(Float64(data = self.inter_speed))
+            # Действия при проезде знака перекрестка
+            if cur_sign == 'intersection_sign':
+                self.max_vel_pub.publish(Float64(data = self.interIn_speed))
+                self.offset_pub.publish(Float64(data = self.interIn_offset))
 
-            if self.enable_rotate:
+            # Действия при повороте налево или направо
+            if (cur_sign == 'turn_left_sign' or cur_sign == 'turn_right_sign'):
 
-                self.enable_following_pub.publish(Bool(data = False))
+                self.max_vel_pub.publish(Float64(data = self.inter_speed))
+
+                self.rotated = True
 
                 if cur_sign == 'turn_left_sign':
+                    self.enable_following_pub.publish(Bool(data = False))
                     self.offset_pub.publish(Float64(data = self.interL_offset))
-                    self.angle = 80
+                    self.rotate_pub.publish(Rotate(angle = 80.0, linear_x = 0.2, angular_z = 1.0, id = self.id))
 
-                if cur_sign == 'turn_right_sign':
+                elif cur_sign == 'turn_right_sign':
                     self.offset_pub.publish(Float64(data = self.interR_offset))
-                    self.angle = 0
-
-    def rotate_robot(self):
-        
-        # Принудительно повернуть робота на заданный угол
-        if self.angle is not None and self.start_angle is not None and self.cur_angle is not None:
-
-            if np.abs(self.cur_angle - self.start_angle) >= np.abs(self.angle):
-
-                self.enable_rotate = False
-                self.angle = None
-                self.enable_following_pub.publish(Bool(data = True))
-                
-                return
-            
-            twist = Twist()
-            twist.linear.x = 0.2
-            twist.angular.z = 4.0 * np.sign(self.angle)
-
-            self.cmd_vel_pub.publish(twist)
 
     def get_odom(self, msg):
 
-        # Координата x робота
         pose_x = msg.pose.pose.position.x
-
-        # Текущий угол поворота в градусах
-        self.cur_angle = self.euler_from_quaternion(msg.pose.pose.orientation)[2]
-        self.cur_angle = np.degrees(self.cur_angle)
-        self.cur_angle = 360 + self.cur_angle if self.cur_angle < 0 else self.cur_angle
-
-        # Фиксация начального угла перед поворотом робота
-        if self.angle is not None and self.start_angle is None:
-            self.start_angle = self.cur_angle
 
         # Изменить скорость и смещение при выезде из перекрестка
         if pose_x <= -0.1:
@@ -131,28 +104,12 @@ class Intersection_Handler(Node):
             self.max_vel_pub.publish(Float64(data = self.interOut_speed))
             rclpy.shutdown()
 
-    def euler_from_quaternion(self, quaternion):
-        
-        # Перевод кватерниона в углы Эйлера
-        x = quaternion.x
-        y = quaternion.y
-        z = quaternion.z
-        w = quaternion.w
+    def set_rotate_done(self, msg):
 
-        sinr_cosp = 2 * (w * x + y * z)
-        cosr_cosp = 1 - 2 * (x * x + y * y)
-        roll = np.arctan2(sinr_cosp, cosr_cosp)
+        if msg.data == self.id:
+            self.enable_following_pub.publish(Bool(data = True))
 
-        sinp = 2 * (w * y - z * x)
-        pitch = np.arcsin(sinp)
 
-        siny_cosp = 2 * (w * z + x * y)
-        cosy_cosp = 1 - 2 * (y * y + z * z)
-        yaw = np.arctan2(siny_cosp, cosy_cosp)
-
-        return roll, pitch, yaw
-
-                   
 def main():
     rclpy.init()
 

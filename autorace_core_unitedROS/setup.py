@@ -39,6 +39,8 @@ setup(
             "traffic_light = autorace_core_unitedROS.traffic_light:main",
             "intersection = autorace_core_unitedROS.intersection:main",
             "pedestrian_crossing = autorace_core_unitedROS.pedestrian_crossing:main",
+            "parking = autorace_core_unitedROS.parking:main",
+            "robot_rotator = autorace_core_unitedROS.robot_rotator:main"
 
         ],
     },

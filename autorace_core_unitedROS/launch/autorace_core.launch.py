@@ -64,6 +64,16 @@ def generate_launch_description():
             executable = 'pedestrian_crossing',
             name = 'pedestrian_crossing'),
 
+        Node(
+            package = 'autorace_core_unitedROS',
+            executable = 'parking',
+            name = 'parking'),
+
+        Node(
+            package = 'autorace_core_unitedROS',
+            executable = 'robot_rotator',
+            name = 'robot_rotator'),
+
         # Node(
         #     package = 'autorace_core_unitedROS',
         #     executable = 'avoid_obstacles',
