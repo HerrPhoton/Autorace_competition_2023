@@ -74,6 +74,11 @@ def generate_launch_description():
             executable = 'robot_rotator',
             name = 'robot_rotator'),
 
+        Node(
+            package = 'autorace_core_unitedROS',
+            executable = 'finish',
+            name = 'finish'),
+
         # Node(
         #     package = 'autorace_core_unitedROS',
         #     executable = 'avoid_obstacles',
