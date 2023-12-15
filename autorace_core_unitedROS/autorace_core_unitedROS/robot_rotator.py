@@ -9,7 +9,9 @@ from robot_rotate_interface.msg import Rotate
 import numpy as np
 
 class Rotator(Node):
-  
+    """Производит поворот робота на заданный угол с заданными угловой и линейной скоростями.
+    По завершении поворота посылает сообщение по топику."""
+
     def __init__(self):
         super().__init__('Rotator')
 

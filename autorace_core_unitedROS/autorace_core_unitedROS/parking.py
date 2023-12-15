@@ -11,7 +11,6 @@ from nav_msgs.msg import Odometry
 
 from cv_bridge import CvBridge
 
-
 import cv2
 import numpy as np
 
@@ -87,7 +86,7 @@ class Parking_Handler(Node):
         self.find_parking_place = False # Режим поворота на парковочное место
         self.exit = False # Режим выезда с перекрестка
 
-        self.shutdown = False
+        self.shutdown = False # Нужно ли выключить ноду после завершения поворота
 
         self.angle = None # Угол для поворота на парковочное место 
         self.id = 2
@@ -120,8 +119,8 @@ class Parking_Handler(Node):
                 self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = 0.23, angular_z = 1.0, id = self.id))
             # Направо
             else:
-                self.angle = -70.0
-                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = 0.20, angular_z = 1.0, id = self.id))
+                self.angle = -80.0
+                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = 0.23, angular_z = 1.0, id = self.id))
 
             self.find_parking_place = False
             
@@ -133,13 +132,14 @@ class Parking_Handler(Node):
             image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
             hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
+            # Определяем желтые полосы
             yellow_mask = cv2.inRange(hsv_image, (20, 100, 100), (30, 255, 255))
             yellow_mask = cv2.blur(yellow_mask, (3, 3))
             yellow_mask[yellow_mask != 0] = 255
 
             contours, _ = cv2.findContours(yellow_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-            # Начать поворот на парковочное место после конца желтых линий
+            # Начать поворот на парковочное место после того, как желтые линии окажутся дальше середины изображения
             if len(contours) == 2 and not self.find_parking_place:
 
                 if np.min(np.argwhere(yellow_mask)[:, 0]) >= yellow_mask.shape[0] / 2.1:
@@ -169,13 +169,19 @@ class Parking_Handler(Node):
     
         if msg.data == self.id:
 
+            # Поворот на парковочное место
             if not self.exit:
                 self.cmd_vel_pub.publish(Twist())
 
+                # Ждем секунду и пока робот полностью остановится
                 sleep(1.5)
 
+                # Запускаем выезд задом
                 self.angle = 60 * np.sign(self.angle)
-                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = -0.1, angular_z = 0.5, id = self.id))
+                linear_x = -0.1 if self.angle > 0 else -0.15
+                angular_z = 0.5 if self.angle > 0 else 0.6
+
+                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = linear_x, angular_z = angular_z, id = self.id))
 
                 self.exit = True
             else:
