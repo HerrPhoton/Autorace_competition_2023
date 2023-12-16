@@ -5,8 +5,6 @@ from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from std_msgs.msg import Bool
 
-from cv_bridge import CvBridge
-
 
 class Finish_Handler(Node):
     """ Останавливает робота после пересечения финишной линии."""
@@ -31,12 +29,10 @@ class Finish_Handler(Node):
             1)
         
         self.finish_enable_sub = self.create_subscription(
-            Odometry,
+            Bool,
             '/finish_enable',
             self.finish_state,
             1)
-
-        self.finish_enable = False
 
     def get_odom(self, msg):
 

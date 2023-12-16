@@ -45,7 +45,7 @@ class Rotator(Node):
         self.angle = None       # Относительный угол поворота
         self.linear_x = None    # Линейная скорость при повороте
         self.angular_z = None   # Угловая скорость при повороте
-        self.id = None          # Номер испытания
+        self.id = None          # Идентификатор вызывающей ноды
 
     def rotate_robot(self):
         
@@ -65,7 +65,6 @@ class Rotator(Node):
                 self.start_angle = None
                 self.cur_angle = None
                 self.id = None
-
         
             else:
                 twist = Twist()

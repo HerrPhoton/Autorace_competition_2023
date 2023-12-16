@@ -1,11 +1,12 @@
 from time import sleep
+import os
 
 import rclpy
 from rclpy.node import Node
 
+from std_msgs.msg import Bool, String, Float64, Int8
 from robot_rotate_interface.msg import Rotate
 from sensor_msgs.msg import LaserScan, Image
-from std_msgs.msg import Bool, String, Float64, Int8
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 
@@ -80,6 +81,8 @@ class Parking_Handler(Node):
             self.get_odom,
             1)
  
+        self.ID = 2
+
         self.cv_bridge = CvBridge()
 
         self.is_parking = False # Режим заезда на парковку
@@ -88,8 +91,9 @@ class Parking_Handler(Node):
 
         self.shutdown = False # Нужно ли выключить ноду после завершения поворота
 
-        self.angle = None # Угол для поворота на парковочное место 
-        self.id = 2
+        self.angle = None     # Угол для поворота на парковочное место 
+        self.linear_x = None  # Линейная скорость при повороте
+        self.angular_z = None # Угловая скорость при повороте
 
     def handle_sign(self, msg):
 
@@ -103,7 +107,7 @@ class Parking_Handler(Node):
         # Дожидаемся, пока не доедем до знака
         if self.is_parking:
             
-            self.distance = np.min(msg.ranges)
+            self.distance = np.min(msg.ranges[270:360])
 
             if self.distance < 0.3:
                 self.parking_pub.publish(Bool(data = True))
@@ -116,12 +120,16 @@ class Parking_Handler(Node):
             # Налево
             if min_id >= 180:
                 self.angle = 80.0
-                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = 0.23, angular_z = 1.0, id = self.id))
+                self.linear_x = 0.23
+                self.angular_z = 1.0
+
             # Направо
             else:
                 self.angle = -80.0
-                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = 0.23, angular_z = 1.0, id = self.id))
+                self.linear_x = 0.23
+                self.angular_z = 1.0
 
+            self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = self.linear_x, angular_z = self.angular_z, id = self.ID))
             self.find_parking_place = False
             
     def image_processing(self, msg):
@@ -158,7 +166,7 @@ class Parking_Handler(Node):
 
                 self.parking_pub.publish(Bool(data = False))
                 self.enable_following_pub.publish(Bool(data = False))
-                self.rotate_pub.publish(Rotate(angle = 45.0, linear_x = 0.22, angular_z = 1.0, id = self.id))
+                self.rotate_pub.publish(Rotate(angle = 45.0, linear_x = 0.22, angular_z = 1.0, id = self.ID))
 
                 self.max_vel_pub.publish(Float64(data = 0.40))
                 self.offset_pub.publish(Float64(data = 30.0))
@@ -166,9 +174,8 @@ class Parking_Handler(Node):
                 self.shutdown = True
 
     def set_rotate_done(self, msg):
-    
-        if msg.data == self.id:
-
+        
+        if msg.data == self.ID:
             # Поворот на парковочное место
             if not self.exit:
                 self.cmd_vel_pub.publish(Twist())
@@ -178,10 +185,10 @@ class Parking_Handler(Node):
 
                 # Запускаем выезд задом
                 self.angle = 60 * np.sign(self.angle)
-                linear_x = -0.1 if self.angle > 0 else -0.15
-                angular_z = 0.5 if self.angle > 0 else 0.6
+                self.linear_x = -0.1 if self.angle > 0 else -0.15
+                self.angular_z = 0.5 if self.angle > 0 else 0.6
 
-                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = linear_x, angular_z = angular_z, id = self.id))
+                self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = self.linear_x, angular_z = self.angular_z, id = self.ID))
 
                 self.exit = True
             else:
@@ -189,9 +196,6 @@ class Parking_Handler(Node):
 
                 if self.shutdown:
                     rclpy.shutdown()
-
-
-
 
 
 def main():

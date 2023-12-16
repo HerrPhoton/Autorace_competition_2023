@@ -1,10 +1,10 @@
 import rclpy
 from rclpy.node import Node
 
-from sensor_msgs.msg import Image
 from std_msgs.msg import Bool, String
 from geometry_msgs.msg import Twist
-from cv_bridge import CvBridge
+from sensor_msgs.msg import LaserScan
+
 
 import numpy as np
 
@@ -25,10 +25,10 @@ class Pedestrian_Crossing_Handler(Node):
             self.handle_sign,
             1)
         
-        self.image_sub = self.create_subscription(
-            Image,
-            '/depth/image',
-            self.image_callback,
+        self.laser_scan_sub = self.create_subscription(
+            LaserScan,
+            '/scan',
+            self.get_distance,
             1)
         
         self.cmd_vel_pub = self.create_publisher(
@@ -39,29 +39,26 @@ class Pedestrian_Crossing_Handler(Node):
         self.sign_flag = False
         self.distance = 0
         self.stop = False 
-        self.cv_bridge = CvBridge()
 
     def handle_sign(self, msg):
 
         if msg.data == 'pedestrian_crossing_sign' and not self.sign_flag:
             self.sign_flag = True
 
-    def image_callback(self, msg):
-
-        # Определяем расстояние от машинки до препятствия 
-        image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
-        image = image[int(msg.height * 0.35) : -int(msg.height * 0.35), 
-                      int(msg.width * 0.35)  : -int(msg.width * 0.35)]
+    def get_distance(self, msg):
         
-        self.distance = np.min(image)
+        # При нахождении знака определяем расстояние до препятствия 
         if self.sign_flag:
+            self.distance = np.min(np.concatenate((msg.ranges[340:360], msg.ranges[0:20]), axis = 0))
 
-            if self.distance < 0.3 and not self.stop:
+            # Если расстояние меньше указанного, то необходимо затормозить
+            if self.distance < 0.4 and not self.stop:
                 self.enable_following_pub.publish(Bool(data = False))
                 self.cmd_vel_pub.publish(Twist())
                 self.stop = True
 
-            if self.stop and self.distance > 0.3:
+            # После остановки порверяем отсутствие препятствия
+            if self.stop and self.distance > 0.4:
                 self.enable_following_pub.publish(Bool(data = True))
                 rclpy.shutdown()
 

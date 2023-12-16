@@ -5,8 +5,6 @@ from std_msgs.msg import String, Bool, Float64, Int8
 from nav_msgs.msg import Odometry
 from robot_rotate_interface.msg import Rotate
 
-import numpy as np
-
 
 class Intersection_Handler(Node):
     """ Обработка перекрестка.
@@ -19,6 +17,11 @@ class Intersection_Handler(Node):
         self.enable_following_pub = self.create_publisher(
             Bool,
             '/enable_following',
+            1)
+        
+        self.enable_detection_pub = self.create_publisher(
+            Bool,
+            '/enable_detection',
             1)
 
         self.max_vel_pub = self.create_publisher(
@@ -54,8 +57,9 @@ class Intersection_Handler(Node):
             self.get_odom,
             1)
         
+        self.ID = 0
+
         self.rotated = False
-        self.id = 0
 
         # Скорости движения по перекрестку
         self.interIn_speed = self.declare_parameter('interIn_speed', 0.0).get_parameter_value().double_value
@@ -83,13 +87,14 @@ class Intersection_Handler(Node):
             if (cur_sign == 'turn_left_sign' or cur_sign == 'turn_right_sign'):
 
                 self.max_vel_pub.publish(Float64(data = self.inter_speed))
+                self.enable_detection_pub.publish(Bool(data = False))
 
                 self.rotated = True
 
                 if cur_sign == 'turn_left_sign':
                     self.enable_following_pub.publish(Bool(data = False))
                     self.offset_pub.publish(Float64(data = self.interL_offset))
-                    self.rotate_pub.publish(Rotate(angle = 80.0, linear_x = 0.2, angular_z = 1.0, id = self.id))
+                    self.rotate_pub.publish(Rotate(angle = 80.0, linear_x = 0.2, angular_z = 1.0, id = self.ID))
 
                 elif cur_sign == 'turn_right_sign':
                     self.offset_pub.publish(Float64(data = self.interR_offset))
@@ -102,11 +107,11 @@ class Intersection_Handler(Node):
         if pose_x <= -0.1:
             self.offset_pub.publish(Float64(data = self.interOut_offset))
             self.max_vel_pub.publish(Float64(data = self.interOut_speed))
+            self.enable_detection_pub.publish(Bool(data = True))
             rclpy.shutdown()
 
     def set_rotate_done(self, msg):
-
-        if msg.data == self.id:
+        if msg.data == self.ID:
             self.enable_following_pub.publish(Bool(data = True))
 
 
