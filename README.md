@@ -3,9 +3,7 @@
 
 ---
 
-<img src = "https://img.shields.io/badge/Python 3.9-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=python&logoColor=FFFFFF"> <img src = 'https://img.shields.io/github/contributors/HerrPhoton/Autorace_competition_2023?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=teamspeak&logoColor=FFFFFF'>  <img src ='https://img.shields.io/github/repo-size/HerrPhoton/Autorace_competition_2023?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=weightsandbiases&logoColor=FFFFFF'>
-
-
+<img src = "https://img.shields.io/badge/Python 3.9-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=python&logoColor=FFFFFF">  <img src = "https://img.shields.io/badge/ROS2-humble-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=ROS&logoColor=FFFFFF">
 
 ---
 ### Выполнили: 
@@ -27,54 +25,66 @@
 
 ---
 
-![]()
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/pid_1.jpeg" alt="1" width = 660px height = 360px >
+ 
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/pid_2.jpeg" alt="1" width = 660px height = 360px >
 
 ---
 
 ## Детекция сигналов
 
 Для детектирования знаков мы дообучили YOLOv5s на датасете, который содержал в себе около 910 изображений ( по 130 изображении на каждый класс). В ноде нейросеть брала изображения с камеры и тут же выдавала предсказанные классы и boundbox'ы. Для задачи была реализована детекция с условиям на площадь найденного объекта, чтобы избежать случаев ранней детекции знака.
-
+ 
 ---
 
-![]()
-
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/detect_2.jpeg" alt="1" width = 660px height = 360px >
+ 
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/detect_3.jpeg" alt="1" width = 660px height = 360px >
+ 
 ---
 
 ## Перекресток
+
+Когда робот подъезжает к перекрестку, он вначале замечает знак препятствия, который сигнализирует о уменьшении скорости. После этого распознается знак поворота, в направлении которого необходимо двигаться.
+
+Тут Саша пишет >>>
+
+---
+
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/detect_1.jpeg" alt="1" width = 660px height = 360px >
+ 
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/intersection.jpeg" alt="1" width = 660px height = 360px >
+
+---
+## Объезд препятствий
+
+После детекции знака "Дорожные работы" включается лидар, с помощью которого отслеживаются стоящие впереди препятствия. При первом обнаружении робот вначале сварачивает налево, затем, зафиксировав вторую стену перед собой, сварачивает направо. Завершив последний поворот, робот возобнавляет движение по PIDу.
+
+---
+
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/avoiding_2.jpeg" alt="1" width = 660px height = 360px >
+ 
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/avoiding_1.jpeg" alt="1" width = 660px height = 360px >
+
+---
+## Парковка
 
 Тут Саня пишет >>>
 
 ---
 
-![]()
-
----
-## Объезд препятствий
-
-Тут Андрей пишет >>>
-
----
-
-![]()
-
----
-## Парковка
-
-Тут Соня пишет >>>
-
----
-
-![]()
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/parking_1.jpeg" alt="1" width = 660px height = 360px >
+ 
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/parking_2.jpeg" alt="1" width = 660px height = 360px >
 
 ---
 ## Пешеходный переход
 
-Для прохождения данного препятствия считываются значения с камеры глубины и, расчитывая расстояние до объектов, определяется наличие пешехода на дороге. Перед тем, как сделать принудительную остановку, с помощью OpenCV находится стоп линия, у которой необходимо затормозить.
+Для прохождения данного испытания считываются значения с лидара и, расчитывая расстояние до объектов, определяется наличие пешехода на дороге. Если дистанция меньше определенного значения, робот останавливается, дожидаясь отсутствия на дороге препятствия, и продолжает движение. Иначе, робот проскакивает вперед перед пешеходом. 
 
 ---
 
-![]()
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/pedestrian.jpeg" alt="1" width = 660px height = 360px >
 
 ---
 # Управление проектом
