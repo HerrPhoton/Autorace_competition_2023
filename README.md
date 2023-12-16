@@ -3,7 +3,7 @@
 
 ---
 
-<img src = "https://img.shields.io/badge/Python 3.9-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=python&logoColor=FFFFFF">  <img src = "https://img.shields.io/badge/ROS2-humble-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=ROS&logoColor=FFFFFF">
+<img src = "https://img.shields.io/badge/ROS2-humble-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=ROS&logoColor=FFFFFF">  <img src = "https://img.shields.io/badge/Python 3.9-006C6B?style=for-the-badge&color=3a3b3a&labelColor=%3a3b3a&logo=python&logoColor=FFFFFF"> 
 
 ---
 ### Выполнили: 
