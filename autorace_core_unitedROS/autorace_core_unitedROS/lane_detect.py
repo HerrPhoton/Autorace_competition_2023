@@ -11,27 +11,18 @@ import cv2
 class LineDetector(Node):
     """ Определение белой и желтой линий на трансформированном изображении, 
     поступающего с камеры. Публикует координату x, на которой находится центр
-    между линиями."""
+    между линиями.
+    """
 
     def __init__(self):
         super().__init__('LineDetector')
 
-        self.center_lane_pub = self.create_publisher(
-            Float64,
-            '/center_lane',
-            1)
-        
-        self.img_proj_sub = self.create_subscription(
-            Image,
-            '/color/image_projected',
-            self.image_processing,
-            1)
+        # Publishers
+        self.center_lane_pub = self.create_publisher(Float64, '/center_lane', 1)
 
-        self.parking_sub = self.create_subscription(
-            Bool,
-            '/is_parking',
-            self.get_parking,
-            1)
+        # Subscribers
+        self.img_proj_sub = self.create_subscription(Image, '/color/image_projected', self.image_processing, 1)
+        self.parking_sub = self.create_subscription(Bool, '/is_parking', self.get_parking, 1)
 
         self.cv_bridge = CvBridge()
         self.is_parking = False 

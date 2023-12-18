@@ -12,21 +12,17 @@ import cv2
 
 class Traffic_Light_Handler(Node):
     """ Определение зеленого цвета светофора. 
-    После обнаружения посылает сигнал о начале старта."""
+    После обнаружения посылает сигнал о начале старта.
+    """
 
     def __init__(self):
         super().__init__('Traffic_Light_Handler')
 
-        self.enable_following_pub = self.create_publisher(
-            Bool,
-            '/enable_following',
-            1)
+        # Publishers
+        self.enable_following_pub = self.create_publisher(Bool, '/enable_following', 1)
         
-        self.image_sub = self.create_subscription(
-            Image,
-            '/color/image',
-            self.find_green,
-            1)
+        # Subscribers
+        self.image_sub = self.create_subscription(Image, '/color/image', self.find_green, 1)
 
         self.cv_bridge = CvBridge()
 

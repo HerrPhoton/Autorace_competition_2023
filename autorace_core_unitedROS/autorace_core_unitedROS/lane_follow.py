@@ -12,39 +12,20 @@ from geometry_msgs.msg import Twist
 class LaneFollower(Node):
     """ Программа следования по полосе.
     Принимает координату центра между белой и желтой линиями, после чего
-    производит корректировку направления движения, чтобы робот двигался по цетру полосы."""
+    производит корректировку направления движения, чтобы робот двигался по цетру полосы.
+    """
 
     def __init__(self):
         super().__init__('LaneFollower')
 
-        self.cmd_vel_pub = self.create_publisher(
-            Twist,
-            '/cmd_vel',
-            1)
-        
-        self.center_lane_sub = self.create_subscription(
-            Float64,
-            '/center_lane',
-            self.move_robot,
-            1)
-        
-        self.offset_sub = self.create_subscription(
-            Float64,
-            '/offset',
-            self.get_offset,
-            1)
-            
-        self.enable_following_sub = self.create_subscription(
-            Bool,
-            '/enable_following',
-            self.moving_state,
-            1)
-        
-        self.max_vel_sub = self.create_subscription(
-            Float64,
-            '/max_vel',
-            self.set_max_vel,
-            1)
+        # Publishers
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 1)
+
+        # Subscribers
+        self.center_lane_sub = self.create_subscription(Float64, '/center_lane', self.move_robot, 1)  
+        self.offset_sub = self.create_subscription(Float64, '/offset', self.get_offset, 1)
+        self.enable_following_sub = self.create_subscription(Bool, '/enable_following', self.moving_state, 1)
+        self.max_vel_sub = self.create_subscription(Float64, '/max_vel', self.set_max_vel, 1)
 
         self.enable_following = False # Разрешено ли движение роботу вдоль полосы
 
@@ -57,7 +38,10 @@ class LaneFollower(Node):
         self.error_differences = deque(maxlen = maxlen) # Массив разниц мнгновенных ошибок
         
         # Максимальная скорость робота
-        self.max_vel = self.declare_parameter('max_speed', 0.0).get_parameter_value().double_value 
+        self.max_vel = self.declare_parameter('start_speed', 0.0).get_parameter_value().double_value 
+        
+        # Смещение центра от начального центра полосы
+        self.offset = self.declare_parameter('start_offset', 0.0).get_parameter_value().double_value 
 
         # PID константы для угла поворота
         self.Kp_ang = self.declare_parameter('Kp_ang', 0.0).get_parameter_value().double_value
@@ -69,8 +53,6 @@ class LaneFollower(Node):
         self.Ki_vel = self.declare_parameter('Ki_vel', 0.0).get_parameter_value().double_value
         self.Kd_vel = self.declare_parameter('Kd_vel', 0.0).get_parameter_value().double_value
 
-        # Смещение центра от начального центра полосы
-        self.offset = self.declare_parameter('center_offset', 0.0).get_parameter_value().double_value 
 
     def get_offset(self, msg):
         self.offset = msg.data

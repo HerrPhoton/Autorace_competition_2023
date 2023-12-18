@@ -9,33 +9,20 @@ from robot_rotate_interface.msg import Rotate
 import numpy as np
 
 class Rotator(Node):
-    """Производит поворот робота на заданный угол с заданными угловой и линейной скоростями.
-    По завершении поворота посылает сообщение по топику."""
+    """Совершает поворот робота на заданный угол с заданными угловой и линейной скоростями.
+    По завершении поворота посылает сообщение по топику.
+    """
 
     def __init__(self):
         super().__init__('Rotator')
 
-        self.rotate_done_pub = self.create_publisher(
-            Int8,
-            '/rotate_done',
-            1)
+        # Publishers
+        self.rotate_done_pub = self.create_publisher(Int8, '/rotate_done', 1)
+        self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 1)
 
-        self.cmd_vel_pub = self.create_publisher(
-            Twist,
-            '/cmd_vel',
-            1)
-       
-        self.odom_sub = self.create_subscription(
-            Odometry,
-            '/odom',
-            self.get_odom,
-            1)
-        
-        self.rotate_sub = self.create_subscription(
-            Rotate,
-            '/rotate',
-            self.get_data,
-            1)
+        # Subscribers
+        self.odom_sub = self.create_subscription(Odometry, '/odom', self.get_odom, 1)
+        self.rotate_sub = self.create_subscription(Rotate, '/rotate', self.get_data, 1)
 
         self.timer = self.create_timer(0.1, self.rotate_robot)
 

@@ -23,7 +23,7 @@ setup(
     version='0.0.1',
     packages=find_packages(exclude=['test']),
     data_files=data_files,
-    install_requires=['setuptools==58.2.0', 'dill'],
+    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='A. Leisle',
     maintainer_email='a.leisle@g.nsu.ru',
@@ -34,15 +34,15 @@ setup(
         'console_scripts': [
             "lane_detect = autorace_core_unitedROS.lane_detect:main",
             "lane_follow = autorace_core_unitedROS.lane_follow:main",
-            "avoid_obstacles = autorace_core_unitedROS.avoid_obstacles:main",
             "sign_detection = autorace_core_unitedROS.sign_detection:main",
+            "robot_rotator = autorace_core_unitedROS.robot_rotator:main",
             "traffic_light = autorace_core_unitedROS.traffic_light:main",
             "intersection = autorace_core_unitedROS.intersection:main",
-            "pedestrian_crossing = autorace_core_unitedROS.pedestrian_crossing:main",
+            "obstacles = autorace_core_unitedROS.obstacles:main",
             "parking = autorace_core_unitedROS.parking:main",
-            "robot_rotator = autorace_core_unitedROS.robot_rotator:main",
+            "pedestrian_crossing = autorace_core_unitedROS.pedestrian_crossing:main",
+            "tunnel = autorace_core_unitedROS.tunnel:main",
             "finish = autorace_core_unitedROS.finish:main"
-
         ],
     },
 )

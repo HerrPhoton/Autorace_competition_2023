@@ -77,7 +77,7 @@ class ImageCompensation(Node):
 
         input_range = max_gray - min_gray
 
-        alpha = (hist_size - 1) / input_range
+        alpha = (hist_size - 1) / (input_range + 1e-3)
         beta = -min_gray * alpha
 
         cv_image_compensated = cv2.convertScaleAbs(cv_image_compensated, -1, alpha, beta)

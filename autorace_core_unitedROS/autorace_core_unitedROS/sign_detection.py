@@ -15,26 +15,18 @@ import cv2
 class Sign_detection(Node):
 
     """"Детекция знаков с помощью YOLOv5.
-    Модель выдает только один знак и только тогда, когда площадь bbox превышает заданный порог (знак близко к роботу)."""
+    Модель выдает только один знак и только тогда, когда площадь bbox превышает заданный порог (знак близко к роботу).
+    """
 
     def __init__(self):
         super().__init__('Sign_detection')
 
-        self.class_pub = self.create_publisher(
-            String,
-            '/sign',
-            1)
+        # Publishers
+        self.class_pub = self.create_publisher(String, '/sign', 1)
+        self.image_pub = self.create_publisher(Image, '/color/detect', 1)
         
-        self.image_pub = self.create_publisher(
-            Image,
-            '/color/detect',
-            1)
-        
-        self.image_sub = self.create_subscription(
-            Image,
-            '/color/image',
-            self.subscription_callback,
-            1)
+        # Subscribers
+        self.image_sub = self.create_subscription(Image, '/color/image', self.subscription_callback, 1)
         
         self.model_path = self.declare_parameter('model_path', 'model').get_parameter_value().string_value 
         self.model = torch.hub.load(os.path.join(self.model_path, 'yolov5'), 'custom', path = os.path.join(self.model_path, 'best.pt'), source = 'local') 

@@ -3,8 +3,7 @@ import os
 from ament_index_python.packages import get_package_share_directory
 
 from launch.launch_description_sources import PythonLaunchDescriptionSource
-from launch.actions import IncludeLaunchDescription, TimerAction, RegisterEventHandler
-from launch.event_handlers import OnProcessExit
+from launch.actions import IncludeLaunchDescription, TimerAction
 from launch import LaunchDescription
 from launch_ros.actions import Node
 
@@ -22,7 +21,12 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(pkg_autorace_camera, 'launch', 'extrinsic_camera_calibration.launch.py')))
     
-    params = os.path.join(pkg_autorace_core, 'config', 'params.yaml')
+    base_config = os.path.join(pkg_autorace_core, 'config', 'base.yaml')
+    intersection_config = os.path.join(pkg_autorace_core, 'config', 'intersection.yaml')
+    obstacles_config = os.path.join(pkg_autorace_core, 'config', 'obstacles.yaml')
+    parking_config = os.path.join(pkg_autorace_core, 'config', 'parking.yaml')
+    pedestrian_crossing_config = os.path.join(pkg_autorace_core, 'config', 'pedestrian_crossing.yaml')
+    tunnel_config = os.path.join(pkg_autorace_core, 'config', 'tunnel.yaml')
 
     sign_detection = Node(
         package = 'autorace_core_unitedROS',
@@ -30,19 +34,19 @@ def generate_launch_description():
         name = 'sign_detection',
         parameters=[
             {'model_path': os.path.join(pkg_autorace_core, 'model')},
-            params])
+            base_config])
     
     lane_detect = Node(
         package = 'autorace_core_unitedROS',
         executable = 'lane_detect',
         name = 'lane_detect',
-        parameters = [params])
+        parameters = [base_config])
     
     lane_follow = Node(
         package = 'autorace_core_unitedROS',
         executable = 'lane_follow',
         name = 'lane_follow',
-        parameters = [params])
+        parameters = [base_config])
     
     robot_rotator = Node(
         package = 'autorace_core_unitedROS',
@@ -58,24 +62,32 @@ def generate_launch_description():
         package = 'autorace_core_unitedROS',
         executable = 'intersection',
         name = 'intersection',
-        parameters = [params])
+        parameters = [intersection_config])
     
-    avoid_obstacles = Node(
+    obstacles = Node(
         package = 'autorace_core_unitedROS',
-        executable = 'avoid_obstacles',
-        name = 'avoid_obstacles',
-        parameters = [params])
+        executable = 'obstacles',
+        name = 'obstacles',
+        parameters = [obstacles_config])
     
     parking = Node(
         package = 'autorace_core_unitedROS',
         executable = 'parking',
-        name = 'parking')
+        name = 'parking',
+        parameters = [parking_config])
     
     pedestrian_crossing = Node(
         package = 'autorace_core_unitedROS',
         executable = 'pedestrian_crossing',
-        name = 'pedestrian_crossing')
-      
+        name = 'pedestrian_crossing',
+        parameters = [pedestrian_crossing_config])
+    
+    tunnel = Node(
+        package = 'autorace_core_unitedROS',
+        executable = 'tunnel',
+        name = 'tunnel',
+        parameters = [tunnel_config])
+    
     finish = Node(
         package = 'autorace_core_unitedROS',
         executable = 'finish',
@@ -94,9 +106,10 @@ def generate_launch_description():
         # Ноды испытаний
         traffic_light,
         intersection,
-        avoid_obstacles,
+        obstacles,
         parking,
         pedestrian_crossing,
+        tunnel,
         finish,
 
         TimerAction(
