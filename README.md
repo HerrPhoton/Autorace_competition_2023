@@ -87,6 +87,15 @@
  <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/pedestrian.jpeg" alt="1" width = 660px height = 360px >
 
 ---
+## Туннель
+
+---
+
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/tunnel_2.jpeg" alt="1" width = 660px height = 360px >
+ 
+ <img src="https://github.com/HerrPhoton/Autorace_competition_2023/blob/main/images/tunnel_1.jpeg" alt="1" width = 660px height = 360px >
+
+ ---
 # Управление проектом
 
 ### Установка и запуск программы
