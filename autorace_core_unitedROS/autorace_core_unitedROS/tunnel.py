@@ -1,12 +1,17 @@
+from collections import deque
+
 import rclpy
 from rclpy.node import Node
 
 from std_msgs.msg import Float64, Bool, String
-from sensor_msgs.msg import LaserScan
+from sensor_msgs.msg import LaserScan, Image
 from geometry_msgs.msg import Twist
 from nav_msgs.msg import Odometry
 from math import atan2, sqrt, pi
 
+from cv_bridge import CvBridge
+
+import cv2
 import numpy as np
 
 
@@ -31,6 +36,32 @@ class Tunnel_Handler(Node):
         self.sign_sub = self.create_subscription(String, '/sign', self.handle_sign, 1)
         self.scan_sub = self.create_subscription(LaserScan, '/scan', self.get_distance, 1)  
         self.sub_odom = self.create_subscription(Odometry, '/odom', self.get_odom, 1)
+        self.img_proj_sub = self.create_subscription(Image, '/color/image_projected', self.image_processing, 1)
+
+        # Порог по расстоянию между точками
+        self.threshold = self.declare_parameter('threshold', 0.0).get_parameter_value().double_value
+
+        # Скорости движения по туннелю
+        self.speed = self.declare_parameter('speed', 0.0).get_parameter_value().double_value
+        self.out_speed = self.declare_parameter('out_speed', 0.0).get_parameter_value().double_value
+
+        # Смещение после выезда с туннеля
+        self.out_offset = self.declare_parameter('out_offset', 0.0).get_parameter_value().double_value
+
+        # Смещения координат для определения целевых
+        self.x_offset = self.declare_parameter('x_offset', 0.0).get_parameter_value().double_value
+        self.y_offset = self.declare_parameter('y_offset', 0.0).get_parameter_value().double_value
+
+        # Дистанция до препятствия для объезда
+        self.max_distance = self.declare_parameter('max_distance', 0.0).get_parameter_value().double_value
+
+        # Буфер с угловыми мнгновенными скоростями 
+        maxlen = self.declare_parameter('max_len', 1).get_parameter_value().integer_value
+        self.instant_angulars = deque([0], maxlen = maxlen)
+
+        # PI константы для скорости
+        self.Kp = self.declare_parameter('Kp', 0.0).get_parameter_value().double_value
+        self.Ki = self.declare_parameter('Ki', 0.0).get_parameter_value().double_value
 
         self.timer = self.create_timer(0.1, self.move2goal)
 
@@ -39,24 +70,19 @@ class Tunnel_Handler(Node):
 
         self.angle_offset = 0.0 # Отклонение для объезда препятствий
 
+        self.tunnel_start = False # Въехал ли робот в туннель     
+        self.reached = False # Достигнута ли конечная точка
+
+        self.cv_bridge = CvBridge()
+
+        # Целевые координаты
+        self.target_x = None 
+        self.target_y = None 
+
         # Текущие величины
         self.x = None
         self.y = None
         self.angular = None
-
-        # Целевые величины
-        self.target_x = self.declare_parameter('target_x', 0.0).get_parameter_value().double_value
-        self.target_y = self.declare_parameter('target_y', 0.0).get_parameter_value().double_value
-        self.threshold = self.declare_parameter('threshold', 0.0).get_parameter_value().double_value
-
-        # Скорости движения по туннелю
-        self.speed = self.declare_parameter('speed', 0.0).get_parameter_value().double_value
-        self.out_speed = self.declare_parameter('out_speed', 0.0).get_parameter_value().double_value
-
-        # Смещения
-        self.out_offset = self.declare_parameter('out_offset', 0.0).get_parameter_value().double_value
-
-        self.max_distance = self.declare_parameter('max_distance', 0.0).get_parameter_value().double_value
 
     def move2goal(self):
 
@@ -72,7 +98,9 @@ class Tunnel_Handler(Node):
             angular_z = np.clip(angle + self.angle_offset, -1.0, 1.0)
 
             twist.angular.z = angular_z
-            twist.linear.x = self.speed - (self.speed / 2) * np.abs(angular_z)
+            twist.linear.x = np.clip(self.speed - self.Kp * np.abs(angular_z) - self.Ki * np.sum(np.abs(self.instant_angulars)), 0.1, self.speed)
+
+            self.instant_angulars.append(angular_z)
 
             self.cmd_vel_pub.publish(twist)
 
@@ -83,17 +111,15 @@ class Tunnel_Handler(Node):
             self.x = msg.pose.pose.position.x
             self.y = msg.pose.pose.position.y
             
+            if self.target_x is None:
+                self.target_x = self.x + self.x_offset
+                self.target_y = self.y + self.y_offset
+
             self.angular = self.euler_from_quaternion(msg.pose.pose.orientation)[2]
             self.angular = 2 * pi + self.angular if self.angular < 0 else self.angular
             
             if self.find_distance() < self.threshold:
-
-                self.enable_following_pub.publish(Bool(data = True))
-                self.finish_enable_pub.publish(Bool(data = True))
-                self.max_vel_pub.publish(Float64(data = self.out_speed))
-                self.offset_pub.publish(Float64(data = self.out_offset))
-
-                rclpy.shutdown()
+                self.reached = True
 
     def find_distance(self):
         return sqrt((self.target_x - self.x) ** 2 + (self.target_y - self.y) ** 2)
@@ -113,10 +139,37 @@ class Tunnel_Handler(Node):
             if front_distance < self.max_distance:
                 self.angle_offset = 1 / (4 * front_distance) * (1 if np.argmin(front_range) <= len(front_range) / 2 else -1)
 
-        elif self.tunnel and np.min(msg.ranges[88:92]) < 0.25:
+        elif self.tunnel_start and np.min(msg.ranges[88:92]) < 0.25:
             self.enable_following_pub.publish(Bool(data = False))
             self.tunnel = False
             self.follow = True        
+
+    def image_processing(self, msg):
+
+        # Считывание изображения и перевод в HSV
+        image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
+        hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+
+        # Маска желтой линии
+        yellow_mask = cv2.inRange(hsv_image, (20, 100, 100), (30, 255, 255))
+        yellow_mask = cv2.blur(yellow_mask, (3, 3))
+        yellow_mask[yellow_mask != 0] = 255
+
+        # Маска белой линии
+        white_mask = cv2.inRange(hsv_image, (0, 0, 230), (255, 0, 255))
+        white_mask = cv2.blur(white_mask, (3, 3))
+        white_mask[white_mask != 0] = 255
+
+        if self.tunnel and np.all(yellow_mask == 0):
+            self.tunnel_start = True     
+        
+        if self.reached and np.any(yellow_mask != 0) and np.any(white_mask != 0):
+            self.enable_following_pub.publish(Bool(data = True))
+            self.finish_enable_pub.publish(Bool(data = True))
+            self.max_vel_pub.publish(Float64(data = self.out_speed))
+            self.offset_pub.publish(Float64(data = self.out_offset))
+
+            rclpy.shutdown()
 
     def handle_sign(self, msg):
         

@@ -56,7 +56,7 @@ class Pedestrian_Crossing_Handler(Node):
         
         # При нахождении знака определяем расстояние до препятствия 
         if self.sign_flag:
-            self.distance = np.min(np.concatenate((msg.ranges[335:360], msg.ranges[0:20]), axis = 0))
+            self.distance = np.min(np.concatenate((msg.ranges[340:360], msg.ranges[0:20]), axis = 0))
 
             # Если расстояние меньше указанного, то необходимо затормозить
             if self.distance < self.stop_distance and not self.stop:

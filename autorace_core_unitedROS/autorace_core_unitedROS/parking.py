@@ -92,17 +92,14 @@ class Parking_Handler(Node):
     def get_distance(self, msg):
 
         # Дожидаемся, пока не доедем до знака
-        if self.is_parking:
-            
-            self.distance = np.min(msg.ranges[270:360])
-
-            if self.distance < 0.3:
-                self.parking_pub.publish(Bool(data = True))
-                self.max_vel_pub.publish(Float64(data = self.parking_speed))
+        if self.is_parking and np.min(msg.ranges[270:360]) < 0.3:
+            self.parking_pub.publish(Bool(data = True))
+            self.max_vel_pub.publish(Float64(data = self.parking_speed))
 
         # Определяем в какую сторону нужно повернуть для парковки
         if self.find_parking_place:
 
+            self.find_parking_place = False
             min_id = np.argmin(msg.ranges)
 
             # Налево
@@ -118,7 +115,6 @@ class Parking_Handler(Node):
                 self.angular_z = self.angular_z_R
 
             self.rotate_pub.publish(Rotate(angle = self.angle, linear_x = self.linear_x, angular_z = self.angular_z, id = self.ID))
-            self.find_parking_place = False
             
     def image_processing(self, msg):
 
@@ -128,17 +124,17 @@ class Parking_Handler(Node):
             image = self.cv_bridge.imgmsg_to_cv2(msg, msg.encoding)
             hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
 
-            # Определяем желтые полосы
-            yellow_mask = cv2.inRange(hsv_image, (20, 100, 100), (30, 255, 255))
-            yellow_mask = cv2.blur(yellow_mask, (3, 3))
-            yellow_mask[yellow_mask != 0] = 255
+            # Маска белой линии
+            white_mask = cv2.inRange(hsv_image, (0, 0, 230), (255, 0, 255))
+            white_mask = cv2.blur(white_mask, (3, 3))
+            white_mask[white_mask != 0] = 255
 
-            contours, _ = cv2.findContours(yellow_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+            contours, _ = cv2.findContours(white_mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
 
-            # Начать поворот на парковочное место после того, как желтые линии окажутся дальше середины изображения
-            if len(contours) == 2 and not self.find_parking_place:
+            if not self.find_parking_place:
 
-                if np.min(np.argwhere(yellow_mask)[:, 0]) >= yellow_mask.shape[0] / 2.0:
+                # Начать поворот на парковочное место
+                if len(contours) > 4:
                     self.enable_following_pub.publish(Bool(data = False))
                     self.cmd_vel_pub.publish(Twist())
                     self.find_parking_place = True
